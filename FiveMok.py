@@ -71,6 +71,9 @@ def GetName(player):
 def InputPos():
     text = input("좌표 입력 x,y : ")
 
+    if text == "GG" or text == "gg" or text == "항복":
+        return "항복"
+
     if "," not in text:
         return None
 
@@ -212,6 +215,14 @@ while True:
     print(GetName(current_turn), "턴!")
 
     position = InputPos()
+
+    if position == "항복":
+        print(GetName(current_turn), "항복!")
+
+        ChangeTrun()
+
+        print(GetName(current_turn), "승리!")
+        break
 
     if position == None:
         print("입력이 틀렸음... 예시: 1,3")
