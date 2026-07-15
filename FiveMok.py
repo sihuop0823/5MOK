@@ -4,6 +4,9 @@ Nothing = 0
 Black = 1
 White = 2
 
+stone_count = 0
+
+
 # 보드 만들기!! 걍 append 반복으로 만들었다
 def CreateBorad():
     new_board = []
@@ -55,12 +58,14 @@ def PrintBoard():
 
     print()
 
-# 숫자값 플레이어 이름으로 변경 
+
+# 숫자값 플레이어 이름으로 변경
 def GetName(player):
     if player == Black:
         return "흑돌"
     else:
         return "백돌"
+
 
 # 좌표 입력 받기 & 예외처리 except로 해주기 (몰라서 찾아봤음)
 def InputPos():
@@ -71,16 +76,17 @@ def InputPos():
 
     data = text.split(",")
 
-    if len(data) != 2: # x y 2개 없으면 거르기
+    if len(data) != 2:  # x y 2개 없으면 거르기
         return None
 
-    try: # 이 부분은 진짜 모르겠어서..........
+    try:
         x = int(data[0]) - 1
         y = int(data[1]) - 1
     except:
         return None
 
     return x, y
+
 
 # x y 좌표 범위 확인하기
 def CheckXYBoard(x, y):
@@ -98,12 +104,14 @@ def CheckXYBoard(x, y):
 
     return True
 
+
 # 그 위치 빈칸인지 확인 (중복 칸이면 싫어요)
 def EmptryPos(x, y):
     if board[y][x] == Nothing:
         return True
 
     return False
+
 
 # 착수 가능한 곳만 보기
 def CanPlaceStone(x, y):
@@ -114,6 +122,7 @@ def CanPlaceStone(x, y):
         return False
 
     return True
+
 
 # while문으로 돌면서 오목판 안에서만 계산 + 다른 돌 있으면 멈춤 -> 그리고 갯수 반환
 def CountOneWayStone(x, y, move_x, move_y, player):
@@ -131,6 +140,7 @@ def CountOneWayStone(x, y, move_x, move_y, player):
             break
 
     return count
+
 
 # 위에 있는 CountOneWayStone 써서 갯수 세기
 def CountStone(x, y, move_x, move_y, player):
@@ -164,7 +174,29 @@ def CheckWin(x, y, player):
     return False
 
 
-# 현재 흑돌이면 백돌로 바꾸고 이미 채워져 있는 칸이면 반환
+# 흑돌이 6개 이상 연결되는지 확인
+def CheckSixMok(x, y, player):
+    horizontal = CountStone(x, y, 1, 0, player)
+    vertical = CountStone(x, y, 0, 1, player)
+    diagonal_down = CountStone(x, y, 1, 1, player)
+    diagonal_up = CountStone(x, y, 1, -1, player)
+
+    if horizontal >= 6:
+        return True
+
+    if vertical >= 6:
+        return True
+
+    if diagonal_down >= 6:
+        return True
+
+    if diagonal_up >= 6:
+        return True
+
+    return False
+
+
+# 현재 흑돌이면 백돌로 바꾸고 아니면 흑돌로 바꾸기
 def ChangeTrun():
     global current_turn
 
@@ -191,11 +223,27 @@ while True:
         print("둘 수 없는 위치!!")
         continue
 
+    if current_turn == Black:
+        board[y][x] = current_turn
+
+        if CheckSixMok(x, y, current_turn):
+            board[y][x] = Nothing
+            print("6목 금수입니둥")
+            continue
+
+        board[y][x] = Nothing
+
     board[y][x] = current_turn
+    stone_count = stone_count + 1
 
     if CheckWin(x, y, current_turn):
         PrintBoard()
         print(GetName(current_turn), "승리!")
+        break
+
+    if stone_count >= board_5mok * board_5mok:
+        PrintBoard()
+        print("무승부!")
         break
 
     ChangeTrun()
