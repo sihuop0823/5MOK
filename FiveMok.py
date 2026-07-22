@@ -8,6 +8,7 @@ Black = 1
 White = 2
 
 stone_count = 0
+five_stone_count = 0
 
 
 # 보드 만들기!! 걍 append 반복으로 만들었다
@@ -28,70 +29,12 @@ def CreateBorad():
 board = CreateBorad()
 current_turn = Black
 
-
-# 보드 출력 및 자릿수 계산 (숫자 자리 한칸씩 계속 밀려서 어려웠음)
-# 칸 출력 & 종류 따라 백돌 흑돌 계산
-def PrintBoard():
-    print()
-    print("   ", end="")
-
-    for number in range(1, board_5mok + 1):
-        if number < 10:
-            print(" " + str(number), end=" ")
-        else:
-            print(str(number), end=" ")
-
-    print()
-
-    for y in range(board_5mok):
-        if y + 1 < 10:
-            print(" " + str(y + 1), end=" ")
-        else:
-            print(str(y + 1), end=" ")
-
-        for x in range(board_5mok):
-            if board[y][x] == Nothing:
-                print(" -", end=" ")
-            elif board[y][x] == Black:
-                print(" ●", end=" ")
-            elif board[y][x] == White:
-                print(" ○", end=" ")
-
-        print()
-
-    print()
-
-
 # 숫자값 플레이어 이름으로 변경
 def GetName(player):
     if player == Black:
         return "흑돌"
     else:
         return "백돌"
-
-
-# 좌표 입력 받기 & 예외처리 except로 해주기 (몰라서 찾아봤음)
-def InputPos():
-    text = input("좌표 입력 x,y : ")
-
-    if text == "GG" or text == "gg" or text == "항복":
-        return "항복"
-
-    if "," not in text:
-        return None
-
-    data = text.split(",")
-
-    if len(data) != 2:  # x y 2개 없으면 거르기
-        return None
-
-    try:
-        x = int(data[0]) - 1
-        y = int(data[1]) - 1
-    except:
-        return None
-
-    return x, y
 
 
 # x y 좌표 범위 확인하기
@@ -201,6 +144,32 @@ def CheckSixMok(x, y, player):
 
     return False
 
+def illegalMove(x, y, player):
+
+    five_stone_count = 0
+
+    horizontal = CountStone(x, y, 1, 0, player)
+    vertical = CountStone(x, y, 0, 1, player)
+    diagonal_down = CountStone(x, y, 1, 1, player)
+    diagonal_up = CountStone(x, y, 1, -1, player)
+
+    if horizontal >= 3:
+            five_stone_count += 1
+            return True , five_stone_count
+    
+    if vertical >= 3:
+            five_stone_count += 1
+            return True , five_stone_count
+    
+    if diagonal_down >= 3:
+            five_stone_count += 1
+            return True , five_stone_count
+    
+    if diagonal_up >= 3:
+            five_stone_count += 1
+            return True , five_stone_count
+
+
 
 # 현재 흑돌이면 백돌로 바꾸고 아니면 흑돌로 바꾸기
 def ChangeTrun():
@@ -210,59 +179,6 @@ def ChangeTrun():
         current_turn = White
     else:
         current_turn = Black
-
-
-def PlayConsoleGame():
-    global stone_count
-
-    while True:
-        PrintBoard()
-        print(GetName(current_turn), "턴!")
-
-        position = InputPos()
-
-        if position == "항복":
-            print(GetName(current_turn), "항복!")
-
-            ChangeTrun()
-
-            print(GetName(current_turn), "승리!")
-            break
-
-        if position == None:
-            print("입력이 틀렸음... 예시: 1,3")
-            continue
-
-        x, y = position
-
-        if CanPlaceStone(x, y) == False:
-            print("둘 수 없는 위치!!")
-            continue
-
-        if current_turn == Black:
-            board[y][x] = current_turn
-
-            if CheckSixMok(x, y, current_turn):
-                board[y][x] = Nothing
-                print("6목 금수입니둥")
-                continue
-
-            board[y][x] = Nothing
-
-        board[y][x] = current_turn
-        stone_count = stone_count + 1
-
-        if CheckWin(x, y, current_turn):
-            PrintBoard()
-            print(GetName(current_turn), "승리!")
-            break
-
-        if stone_count >= board_5mok * board_5mok:
-            PrintBoard()
-            print("무승부!")
-            break
-
-        ChangeTrun()
 
 
 # 한 칸의 크기와 돌 주변 여백
@@ -358,6 +274,19 @@ def ResetGame():
     DrawBoard()
     status_label.configure(text="흑돌 턴")
 
+def GGTheGame():
+    global game_finished
+
+    if game_finished:
+        return
+
+    ChangeTrun()
+
+    status_label.configure(text=GetName(current_turn) + " 승리!")
+
+    game_finished = True
+    
+
 
 def StartGUI():
     global canvas, status_label, game_finished
@@ -365,10 +294,10 @@ def StartGUI():
     game_finished = False
 
     app = ctk.CTk()
-    app.title("오목")
+    app.title("오목조목") 
 
     status_label = ctk.CTkLabel(app, text="흑돌 턴")
-    status_label.pack(pady=10)
+    status_label.pack(pady=10)  
 
     board_frame = ctk.CTkFrame(app)
     board_frame.pack(padx=10, pady=5)
@@ -382,12 +311,15 @@ def StartGUI():
         highlightthickness=0
     )
     canvas.pack(padx=10, pady=10)
-    canvas.bind("<Button-1>", ClickBoard)
+    canvas.bind("<Button-1>", ClickBoard) # 반환 이벤트 잇는 커맨드였던거임!!!
 
     DrawBoard()
 
     reset_button = ctk.CTkButton(app, text="새 게임", command=ResetGame)
     reset_button.pack(pady=10)
+
+    gg_button = ctk.CTkButton(app, text="항복", command=GGTheGame)
+    gg_button.pack(pady = 20)
 
     app.mainloop()
 
