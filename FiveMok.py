@@ -266,8 +266,51 @@ def PlayConsoleGame():
         ChangeTrun()
 
 
-# GUI에서 클릭했을 때 실행되는 실제 착수 로직
-def ClickBoard(x, y):
+# 한 칸의 크기와 돌 주변 여백
+cell_size = 42
+stone_margin = 4
+
+
+# 오목판 선과 이미 놓인 돌을 다시 그리기
+def DrawBoard():
+    canvas.delete("all")
+
+    board_size = board_5mok * cell_size
+
+    for number in range(board_5mok + 1):
+        position = number * cell_size
+        canvas.create_line(position, 0, position, board_size)
+        canvas.create_line(0, position, board_size, position)
+
+    for y in range(board_5mok):
+        for x in range(board_5mok):
+            if board[y][x] != Nothing:
+                DrawStone(x, y, board[y][x])
+
+
+# 오목판 한 칸에 흑돌 또는 백돌 그리기
+def DrawStone(x, y, player):
+    left = x * cell_size + stone_margin
+    top = y * cell_size + stone_margin
+    right = (x + 1) * cell_size - stone_margin
+    bottom = (y + 1) * cell_size - stone_margin
+
+    if player == Black:
+        canvas.create_oval(left, top, right, bottom, fill="black", outline="black")
+    else:
+        canvas.create_oval(left, top, right, bottom, fill="white", outline="gray")
+
+
+# 오목판을 클릭한 위치를 x, y 좌표로 바꾸기
+def ClickBoard(event):
+    x = event.x // cell_size
+    y = event.y // cell_size
+
+    PlaceStone(x, y)
+
+
+# GUI에서 실제로 돌을 두는 로직
+def PlaceStone(x, y):
     global stone_count, game_finished
 
     if game_finished:
@@ -290,11 +333,7 @@ def ClickBoard(x, y):
 
     board[y][x] = current_turn
     stone_count = stone_count + 1
-
-    if current_turn == Black:
-        buttons[y][x].configure(text="●")
-    else:
-        buttons[y][x].configure(text="○")
+    DrawBoard()
 
     if CheckWin(x, y, current_turn):
         status_label.configure(text=GetName(current_turn) + " 승리!")
@@ -318,18 +357,14 @@ def ResetGame():
     stone_count = 0
     game_finished = False
 
-    for y in range(board_5mok):
-        for x in range(board_5mok):
-            buttons[y][x].configure(text="")
-
+    DrawBoard()
     status_label.configure(text="흑돌 턴")
 
 
 def StartGUI():
-    global buttons, status_label, game_finished
+    global canvas, status_label, game_finished
 
     game_finished = False
-    buttons = []
 
     app = ctk.CTk()
     app.title("오목")
@@ -340,22 +375,18 @@ def StartGUI():
     board_frame = ctk.CTkFrame(app)
     board_frame.pack(padx=10, pady=5)
 
-    for y in range(board_5mok):
-        button_line = []
+    board_size = board_5mok * cell_size
+    canvas = tk.Canvas(
+        board_frame,
+        width=board_size,
+        height=board_size,
+        background="#D4A15F",
+        highlightthickness=0
+    )
+    canvas.pack(padx=10, pady=10)
+    canvas.bind("<Button-1>", ClickBoard)
 
-        for x in range(board_5mok):
-            button = ctk.CTkButton(
-                board_frame,
-                text="",
-                width=36,
-                height=36,
-                corner_radius=0,
-                command=lambda x=x, y=y: ClickBoard(x, y)
-            )
-            button.grid(row=y, column=x, padx=1, pady=1)
-            button_line.append(button)
-
-        buttons.append(button_line)
+    DrawBoard()
 
     reset_button = ctk.CTkButton(app, text="새 게임", command=ResetGame)
     reset_button.pack(pady=10)
@@ -363,4 +394,5 @@ def StartGUI():
     app.mainloop()
 
 
-StartGUI()
+if __name__ == "__main__":
+    StartGUI()
