@@ -235,6 +235,7 @@ def DrawStone(x, y, player):
         canvas.create_oval(left, top, right, bottom, fill="white", outline="gray")
 
 
+
 # 오목판을 클릭한 위치를 x, y 좌표로 바꾸기
 def ClickBoard(event):
     x = event.x // cell_size
