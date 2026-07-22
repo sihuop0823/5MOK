@@ -212,7 +212,6 @@ def ChangeTrun():
         current_turn = Black
 
 
-# 콘솔 버전도 남겨 둠. 지금 실행하면 아래 GUI 버전이 시작된다.
 def PlayConsoleGame():
     global stone_count
 
