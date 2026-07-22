@@ -144,30 +144,49 @@ def CheckSixMok(x, y, player):
 
     return False
 
-def illegalMove(x, y, player):
-
-    five_stone_count = 0
+def illegalMoveThree(x, y, player):
+    three_stone_count = 0
 
     horizontal = CountStone(x, y, 1, 0, player)
     vertical = CountStone(x, y, 0, 1, player)
     diagonal_down = CountStone(x, y, 1, 1, player)
     diagonal_up = CountStone(x, y, 1, -1, player)
 
-    if horizontal >= 3:
-            five_stone_count += 1
-            return True , five_stone_count
-    
-    if vertical >= 3:
-            five_stone_count += 1
-            return True , five_stone_count
-    
-    if diagonal_down >= 3:
-            five_stone_count += 1
-            return True , five_stone_count
-    
-    if diagonal_up >= 3:
-            five_stone_count += 1
-            return True , five_stone_count
+    if horizontal == 3:
+        three_stone_count += 1
+
+    if vertical == 3:
+        three_stone_count += 1
+
+    if diagonal_down == 3:
+        three_stone_count += 1
+
+    if diagonal_up == 3:
+        three_stone_count += 1
+
+    return three_stone_count >= 2
+
+def illegalMoveFour(x, y, player):
+    four_stone_count = 0
+
+    horizontal = CountStone(x, y, 1, 0, player)
+    vertical = CountStone(x, y, 0, 1, player)
+    diagonal_down = CountStone(x, y, 1, 1, player)
+    diagonal_up = CountStone(x, y, 1, -1, player)
+
+    if horizontal == 4:
+        four_stone_count += 1
+
+    if vertical == 4:
+        four_stone_count += 1
+
+    if diagonal_down == 4:
+        four_stone_count += 1
+
+    if diagonal_up == 4:
+        four_stone_count += 1
+
+    return four_stone_count >= 2
 
 
 
@@ -237,10 +256,21 @@ def PlaceStone(x, y):
 
     if current_turn == Black:
         board[y][x] = current_turn
+        # 금수 검사 동안만 흑돌을 임시 처리 (이 부분 자꾸 두는 돌이 보여서 이 부분만 AI 도움 받음)
 
         if CheckSixMok(x, y, current_turn):
             board[y][x] = Nothing
             status_label.configure(text="흑돌 6목은 둘 수 없습니다.")
+            return
+
+        if illegalMoveThree(x, y, current_turn):
+            board[y][x] = Nothing
+            status_label.configure(text="흑돌 3-3 금수입니다.")
+            return
+
+        if illegalMoveFour(x, y, current_turn):
+            board[y][x] = Nothing
+            status_label.configure(text="흑돌 4-4 금수입니다.")
             return
 
         board[y][x] = Nothing
