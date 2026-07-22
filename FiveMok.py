@@ -1,3 +1,6 @@
+import tkinter as tk
+import customtkinter as ctk
+
 board_5mok = 15
 
 Nothing = 0
@@ -209,52 +212,155 @@ def ChangeTrun():
         current_turn = Black
 
 
-# 실제 게임 실행되는 로직
-while True:
-    PrintBoard()
-    print(GetName(current_turn), "턴!")
+# 콘솔 버전도 남겨 둠. 지금 실행하면 아래 GUI 버전이 시작된다.
+def PlayConsoleGame():
+    global stone_count
 
-    position = InputPos()
+    while True:
+        PrintBoard()
+        print(GetName(current_turn), "턴!")
 
-    if position == "항복":
-        print(GetName(current_turn), "항복!")
+        position = InputPos()
+
+        if position == "항복":
+            print(GetName(current_turn), "항복!")
+
+            ChangeTrun()
+
+            print(GetName(current_turn), "승리!")
+            break
+
+        if position == None:
+            print("입력이 틀렸음... 예시: 1,3")
+            continue
+
+        x, y = position
+
+        if CanPlaceStone(x, y) == False:
+            print("둘 수 없는 위치!!")
+            continue
+
+        if current_turn == Black:
+            board[y][x] = current_turn
+
+            if CheckSixMok(x, y, current_turn):
+                board[y][x] = Nothing
+                print("6목 금수입니둥")
+                continue
+
+            board[y][x] = Nothing
+
+        board[y][x] = current_turn
+        stone_count = stone_count + 1
+
+        if CheckWin(x, y, current_turn):
+            PrintBoard()
+            print(GetName(current_turn), "승리!")
+            break
+
+        if stone_count >= board_5mok * board_5mok:
+            PrintBoard()
+            print("무승부!")
+            break
 
         ChangeTrun()
 
-        print(GetName(current_turn), "승리!")
-        break
 
-    if position == None:
-        print("입력이 틀렸음... 예시: 1,3")
-        continue
+# GUI에서 클릭했을 때 실행되는 실제 착수 로직
+def ClickBoard(x, y):
+    global stone_count, game_finished
 
-    x, y = position
+    if game_finished:
+        return
 
     if CanPlaceStone(x, y) == False:
-        print("둘 수 없는 위치!!")
-        continue
+        status_label.configure(text="이미 돌이 있는 자리입니다.")
+        return
 
+    # 흑돌은 기존 6목 금수 검사만 한다. 3-3, 4-4 규칙은 추가하지 않음.
     if current_turn == Black:
         board[y][x] = current_turn
 
         if CheckSixMok(x, y, current_turn):
             board[y][x] = Nothing
-            print("6목 금수입니둥")
-            continue
+            status_label.configure(text="흑돌 6목은 둘 수 없습니다.")
+            return
 
         board[y][x] = Nothing
 
     board[y][x] = current_turn
     stone_count = stone_count + 1
 
+    if current_turn == Black:
+        buttons[y][x].configure(text="●")
+    else:
+        buttons[y][x].configure(text="○")
+
     if CheckWin(x, y, current_turn):
-        PrintBoard()
-        print(GetName(current_turn), "승리!")
-        break
+        status_label.configure(text=GetName(current_turn) + " 승리!")
+        game_finished = True
+        return
 
     if stone_count >= board_5mok * board_5mok:
-        PrintBoard()
-        print("무승부!")
-        break
+        status_label.configure(text="무승부!")
+        game_finished = True
+        return
 
     ChangeTrun()
+    status_label.configure(text=GetName(current_turn) + " 턴")
+
+
+def ResetGame():
+    global board, current_turn, stone_count, game_finished
+
+    board = CreateBorad()
+    current_turn = Black
+    stone_count = 0
+    game_finished = False
+
+    for y in range(board_5mok):
+        for x in range(board_5mok):
+            buttons[y][x].configure(text="")
+
+    status_label.configure(text="흑돌 턴")
+
+
+def StartGUI():
+    global buttons, status_label, game_finished
+
+    game_finished = False
+    buttons = []
+
+    app = ctk.CTk()
+    app.title("오목")
+
+    status_label = ctk.CTkLabel(app, text="흑돌 턴")
+    status_label.pack(pady=10)
+
+    board_frame = ctk.CTkFrame(app)
+    board_frame.pack(padx=10, pady=5)
+
+    for y in range(board_5mok):
+        button_line = []
+
+        for x in range(board_5mok):
+            button = ctk.CTkButton(
+                board_frame,
+                text="",
+                width=36,
+                height=36,
+                corner_radius=0,
+                command=lambda x=x, y=y: ClickBoard(x, y)
+            )
+            button.grid(row=y, column=x, padx=1, pady=1)
+            button_line.append(button)
+
+        buttons.append(button_line)
+
+    reset_button = ctk.CTkButton(app, text="새 게임", command=ResetGame)
+    reset_button.pack(pady=10)
+
+    app.mainloop()
+
+
+StartGUI()
