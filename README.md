@@ -10,4 +10,6 @@
 
 2026.07.15 - 무승부 처리 및 6목 제한 추가
 
-2026.07. 21 - Python GUI 추가 (Custom tkinter)
+2026.07.21 - Python GUI 추가 (Custom tkinter)
+
+2026.07.22 - 기초 33금수 / 44금수 처리 
